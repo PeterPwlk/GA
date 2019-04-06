@@ -64,6 +64,10 @@ public class Thief implements Comparable<Thief>{
         score = itemsProfit - trackTime;
     }
 
+    public void updateScoreWithMinScore(double minScore){
+        score = score + minScore;
+    }
+
     public void mutateSwap(){
         Random random = new Random();
         int index1 = random.nextInt(track.size()-1);
@@ -74,7 +78,7 @@ public class Thief implements Comparable<Thief>{
             track.add(track.get(0));
         }
     }
-    //TODO implement Ex crossover
+
     private List<Integer> getEdges(int city){
         List<Integer> edges = new ArrayList<>();
         int indexOfCity = track.indexOf(city);
@@ -124,7 +128,7 @@ public class Thief implements Comparable<Thief>{
         return nextCity;
     }
 
-    public static Thief crossOver(Thief parent1, Thief parent2){
+    public static Thief crossOverEx(Thief parent1, Thief parent2){
         List<Integer> cityIndexes = new ArrayList<>(parent1.track.subList(0,parent1.track.size()-1));
         cityIndexes.sort(Integer::compareTo);
         HashMap<Integer, List<Integer>> edgeTable = new HashMap<>();
@@ -158,5 +162,43 @@ public class Thief implements Comparable<Thief>{
         //backtrack to first city
         childIndexes.add(childIndexes.get(0));
         return new Thief(childIndexes);
+    }
+
+    public static Thief crossOverOx(Thief parent1, Thief parent2){
+        Random random = new Random();
+        List<Integer> citiesIndexesP1 = new ArrayList<>(parent1.track.subList(0,parent1.track.size()-1));
+        List<Integer> citiesIndexesP2 = new ArrayList<>(parent2.track.subList(0,parent2.track.size()-1));
+        int subListLength = citiesIndexesP1.size()/2;
+        int startIndex = random.nextInt(subListLength-1);
+        List<Integer> subListP1 = citiesIndexesP1.subList(startIndex, startIndex + subListLength);
+        List<Integer> subListP2 = new ArrayList<>();
+        //create list of cities from parent 2 not present in 1
+        int index = startIndex + subListLength;
+        while (subListP2.size() < citiesIndexesP1.size()-subListP1.size()){
+            if(index >= citiesIndexesP1.size())
+                index = 0;
+            if(!subListP1.contains(citiesIndexesP2.get(index))){
+                subListP2.add(citiesIndexesP2.get(index));
+            }
+            index++;
+        }
+        //insert into child subList from parent 1
+        index = startIndex;
+        int[] childIndexes = new int[citiesIndexesP1.size()];
+        for(Integer city : subListP1){
+            childIndexes[index] = city;
+            index++;
+        }
+        //insert into child cities from subList of parent 2
+        index = startIndex + subListLength;
+        for(Integer city : subListP2){
+            if(index == childIndexes.length)
+                index = 0;
+            childIndexes[index] = city;
+            index++;
+        }
+        List <Integer> childCities = Arrays.stream(childIndexes).boxed().collect(Collectors.toList());
+        childCities.add(childCities.get(0));
+        return new Thief(childCities);
     }
 }
